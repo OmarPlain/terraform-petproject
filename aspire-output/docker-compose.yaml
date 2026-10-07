@@ -1,0 +1,58 @@
+services:
+  docker-dashboard:
+    image: "mcr.microsoft.com/dotnet/nightly/aspire-dashboard:13.6"
+    ports:
+      - "18888"
+    expose:
+      - "18889"
+      - "18890"
+    networks:
+      - "aspire"
+    restart: "always"
+  postgres:
+    image: "docker.io/library/postgres:18.3"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    expose:
+      - "5432"
+    networks:
+      - "aspire"
+  productserver:
+    image: "${PRODUCTSERVER_IMAGE}"
+    environment:
+      ConnectionStrings__productsdb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=productsdb"
+      PRODUCTSDB_HOST: "postgres"
+      PRODUCTSDB_PORT: "5432"
+      PRODUCTSDB_USERNAME: "postgres"
+      PRODUCTSDB_PASSWORD: "${POSTGRES_PASSWORD}"
+      PRODUCTSDB_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/productsdb"
+      PRODUCTSDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://postgres:5432/productsdb"
+      PRODUCTSDB_DATABASENAME: "productsdb"
+    ports:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  webfrontend:
+    image: "${WEBFRONTEND_IMAGE}"
+    environment:
+      NODE_ENV: "production"
+      PORT: "80"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://docker-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "webfrontend"
+    ports:
+      - "80"
+    depends_on:
+      productserver:
+        condition: "service_started"
+    networks:
+      - "aspire"
+networks:
+  aspire:
+    driver: "bridge"
