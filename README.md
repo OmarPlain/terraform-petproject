@@ -38,3 +38,12 @@ docker build \
   .
 
 URL publica https://petproject-dev-ca-01.wonderfulfield-3969ca0f.westeurope.azurecontainerapps.io/
+
+
+En las GitHub Actions hay que configurar las variables de entorno Settings -> Secrets & Variables -> Actions
+ACR_NAME
+AZURE_CLIENT_ID
+AZURE_TENANT_ID
+AZURE_SUBSCRIPTION_ID
+RESOURCE_GROUP_NAME
+PROD_RESOURCE_GROUP_NAME

@@ -1,0 +1,88 @@
+name: Terraform CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: infra/app
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: infra/app
+        run: terraform apply -auto-approve
+
+      # ACR
+      - name: Get ACR login server
+        id: acr
+        run: |
+          echo "login_server=$(az acr show \
+            --name ${{ vars.ACR_NAME }} \
+            --query loginServer \
+            --output tsv)" >> "$GITHUB_OUTPUT"
+
+      - name: Login to ACR
+        run: az acr login --name ${{ vars.ACR_NAME }}
+
+      # Docker
+      - name: Build frontend
+        run: |
+          docker build \
+            -t ${{ steps.acr.outputs.login_server }}/frontend:${{ github.sha }} \
+            ./frontend
+
+      - name: Push frontend
+        run: |
+          docker push \
+            ${{ steps.acr.outputs.login_server }}/frontend:${{ github.sha }}
+
+      - name: Build backend
+        run: |
+          docker build \
+            -t ${{ steps.acr.outputs.login_server }}/productserver:${{ github.sha }} \
+            ./productserver
+
+      - name: Push backend
+        run: |
+          docker push \
+            ${{ steps.acr.outputs.login_server }}/productserver:${{ github.sha }}
+
+      # Deploy
+      - name: Deploy frontend
+        run: |
+          az containerapp update \
+            --name petproject-dev-ca-01 \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+            --image ${{ steps.acr.outputs.login_server }}/frontend:${{ github.sha }}
+
+      - name: Deploy backend
+        run: |
+          az containerapp update \
+            --name petproject-dev-ca-02 \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+            --image ${{ steps.acr.outputs.login_server }}/productserver:${{ github.sha }}
