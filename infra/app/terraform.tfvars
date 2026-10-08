@@ -1,0 +1,11 @@
+# Sin secretos: el password de postgres se pasa con TF_VAR_postgres_admin_password
+resource_group_name            = "petprojectterraform-dev-rg-01"
+location                       = "West Europe"
+acr_name                       = "petprojectdevacr01"
+container_app_environment_name = "petprojectdevacae01"
+managed_identity_name_front    = "petproject-dev-id-01"
+managed_identity_name_back     = "petproject-dev-id-02"
+acr_sku                        = "Basic"
+postgres_server_name           = "petproject-dev-pgfx-01"
+postgres_database_name         = "productsdb"
+postgres_admin_username        = "postgres"

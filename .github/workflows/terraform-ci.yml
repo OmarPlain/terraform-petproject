@@ -12,6 +12,9 @@ jobs:
     name: Terraform validation
     runs-on: ubuntu-latest
 
+    env:
+      TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+
     defaults:
       run:
         working-directory: infra/app
@@ -34,9 +37,10 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Terraform Validate
         run: terraform validate
+
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -input=false -lock-timeout=60s

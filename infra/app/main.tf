@@ -53,6 +53,11 @@ resource "azurerm_container_app" "webfrontend" {
   resource_group_name          = data.azurerm_resource_group.app.name
   revision_mode                = "Single"
 
+  # La imagen real la despliega el pipeline (az containerapp update), Terraform no la gestiona
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
+  }
+
   identity {
     type = "UserAssigned"
 
@@ -69,7 +74,7 @@ resource "azurerm_container_app" "webfrontend" {
   template {
     container {
       name   = "frontend"
-      image  = "${azurerm_container_registry.app.login_server}/frontend:latest"
+      image  = "mcr.microsoft.com/k8se/quickstart:latest" # placeholder hasta el primer deploy del pipeline
       cpu    = 0.25
       memory = "0.5Gi"
       env {
@@ -99,6 +104,11 @@ resource "azurerm_container_app" "productserver" {
   resource_group_name          = data.azurerm_resource_group.app.name
   revision_mode                = "Single"
 
+  # La imagen real la despliega el pipeline (az containerapp update), Terraform no la gestiona
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
+  }
+
   identity {
     type = "UserAssigned"
 
@@ -122,7 +132,7 @@ resource "azurerm_container_app" "productserver" {
     max_replicas = 1
     container {
       name   = "productserver"
-      image  = "${azurerm_container_registry.app.login_server}/productserver:latest"
+      image  = "mcr.microsoft.com/k8se/quickstart:latest" # placeholder hasta el primer deploy del pipeline
       cpu    = 0.5
       memory = "1Gi"
 

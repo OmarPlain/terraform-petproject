@@ -41,6 +41,7 @@ URL publica https://petproject-dev-ca-01.wonderfulfield-3969ca0f.westeurope.azur
 
 
 En las GitHub Actions hay que configurar las variables de entorno Settings -> Secrets & Variables -> Actions
+POSTGRES_ADMIN_PASSWORD
 ACR_NAME
 AZURE_CLIENT_ID
 AZURE_TENANT_ID
