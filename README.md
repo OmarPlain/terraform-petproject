@@ -36,6 +36,7 @@ docker push petprojectdevacr01.azurecr.io/frontend:latest
 docker build \
   -t petprojectdevacr01.azurecr.io/productserver:latest \
   .
+docker push petprojectdevacr01.azurecr.io/productserver:latest
 
 URL publica https://petproject-dev-ca-01.wonderfulfield-3969ca0f.westeurope.azurecontainerapps.io/
 
